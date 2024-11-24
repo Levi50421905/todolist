@@ -40,8 +40,10 @@ let isEditMode = false;
 let editingId = null;
 
 // CRUD Operations
+const API_URL = '/.netlify/functions/api';
+
 function fetchTasks() {
-  fetch('http://localhost:3000/tasks')
+  fetch(`${API_URL}/tasks`)
       .then(response => response.json())
       .then(tasks => {
           const taskList = document.getElementById('taskList');
@@ -74,59 +76,41 @@ function fetchTasks() {
 }
 
 function handleSave() {
-  const subject = document.getElementById('subject').value;
-  const deadline = document.getElementById('deadline').value;
-  const status = document.getElementById('status').value;
+    const subject = document.getElementById('subject').value;
+    const deadline = document.getElementById('deadline').value;
+    const status = document.getElementById('status').value;
 
-  if (!subject || !deadline || !status) {
-      showNotification('Mohon lengkapi semua data', 'error');
-      return;
-  }
+    const task = { subject, deadline, status };
+    const url = isEditMode ? 
+        `${API_URL}/tasks/${editingId}` : 
+        `${API_URL}/tasks`;
+    const method = isEditMode ? 'PUT' : 'POST';
 
-  if (isEditMode && editingId) {
-      // Update existing task
-      const updatedTask = { subject, deadline, status };
-
-      fetch(`http://localhost:3000/tasks/${editingId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedTask)
-      })
-      .then(response => response.json())
-      .then(() => {
-          fetchTasks();
-          resetForm();
-          showNotification('Tugas berhasil diperbarui');
-          // Reset edit mode
-          isEditMode = false;
-          editingId = null;
-          const saveButton = document.getElementById('saveButton');
-          saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan';
-      })
-      .catch(error => {
-          console.error('Error updating task:', error);
-          showNotification('Gagal memperbarui tugas', 'error');
-      });
-  } else {
-      // Create new task
-      const newTask = { subject, deadline, status };
-
-      fetch('http://localhost:3000/tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newTask)
-      })
-      .then(response => response.json())
-      .then(() => {
-          fetchTasks();
-          resetForm();
-          showNotification('Tugas berhasil ditambahkan');
-      })
-      .catch(error => {
-          console.error('Error saving task:', error);
-          showNotification('Gagal menambahkan tugas', 'error');
-      });
-  }
+    fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(task)
+    })
+    .then(response => response.json())
+    .then(() => {
+        fetchTasks();
+        resetForm();
+        showNotification(
+            isEditMode ? 'Tugas berhasil diperbarui' : 'Tugas berhasil ditambahkan'
+        );
+        if (isEditMode) {
+            isEditMode = false;
+            editingId = null;
+            document.getElementById('saveButton').textContent = 'Simpan';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification(
+            isEditMode ? 'Gagal memperbarui tugas' : 'Gagal menambahkan tugas',
+            'error'
+        );
+    });
 }
 
 function handleEdit(taskId) {

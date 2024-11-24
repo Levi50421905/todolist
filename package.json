@@ -1,0 +1,15 @@
+{
+  "name": "manajemen-tugas-serverless",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@netlify/functions": "^1.6.0",
+    "mongodb": "^5.0.0",
+    "mongoose": "^6.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^12.0.0"
+  }
+}

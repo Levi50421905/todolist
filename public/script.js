@@ -1,49 +1,47 @@
 // Utility functions
 function getStatusBadgeClass(status) {
-  switch(status) {
-      case 'Belum Mulai':
-          return 'status-badge status-pending';
-      case 'Sedang Dikerjai':
-          return 'status-badge status-progress';
-      case 'Selesai':
-          return 'status-badge status-completed';
-      default:
-          return 'status-badge';
+    switch(status) {
+        case 'Belum Mulai':
+            return 'status-badge status-pending';
+        case 'Sedang Dikerjai':
+            return 'status-badge status-progress';
+        case 'Selesai':
+            return 'status-badge status-completed';
+        default:
+            return 'status-badge';
+    }
   }
-}
-
-function formatDate(dateString) {
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return new Date(dateString).toLocaleDateString('id-ID', options);
-}
-
-function showNotification(message, type = 'success') {
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  notification.innerHTML = `
-      <div class="notification-content">
-          <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-          <span>${message}</span>
-      </div>
-  `;
-  document.body.appendChild(notification);
-
-  // Auto remove after 3 seconds
-  setTimeout(() => {
-      notification.classList.add('fade-out');
-      setTimeout(() => notification.remove(), 300);
-  }, 3000);
-}
-
-// Global variable untuk menyimpan mode edit
-let isEditMode = false;
-let editingId = null;
-
-// CRUD Operations
-const API_URL = '/.netlify/functions/api';
-
-function fetchTasks() {
-    fetch('/.netlify/functions/tasks')
+  
+  function formatDate(dateString) {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('id-ID', options);
+  }
+  
+  function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    document.body.appendChild(notification);
+  
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+  
+  // Global variable untuk menyimpan mode edit
+  let isEditMode = false;
+  let editingId = null;
+  
+  // CRUD Operations
+  function fetchTasks() {
+    fetch('http://localhost:3000/tasks')
         .then(response => response.json())
         .then(tasks => {
             const taskList = document.getElementById('taskList');
@@ -75,46 +73,63 @@ function fetchTasks() {
         });
   }
   
-// Fungsi untuk menyimpan/update data
-function handleSave() {
+  function handleSave() {
     const subject = document.getElementById('subject').value;
     const deadline = document.getElementById('deadline').value;
     const status = document.getElementById('status').value;
-
-    const task = { subject, deadline, status };
-    const url = isEditMode ? 
-         `/.netlify/functions/tasks/${editingId}` : 
-        '/.netlify/functions/tasks';
-    const method = isEditMode ? 'PUT' : 'POST';
-
-    fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(task)
-    })
-    .then(response => response.json())
-    .then(() => {
-        fetchTasks();
-        resetForm();
-        showNotification(
-            isEditMode ? 'Tugas berhasil diperbarui' : 'Tugas berhasil ditambahkan'
-        );
-        if (isEditMode) {
+  
+    if (!subject || !deadline || !status) {
+        showNotification('Mohon lengkapi semua data', 'error');
+        return;
+    }
+  
+    if (isEditMode && editingId) {
+        // Update existing task
+        const updatedTask = { subject, deadline, status };
+  
+        fetch(`http://localhost:3000/tasks/${editingId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedTask)
+        })
+        .then(response => response.json())
+        .then(() => {
+            fetchTasks();
+            resetForm();
+            showNotification('Tugas berhasil diperbarui');
+            // Reset edit mode
             isEditMode = false;
             editingId = null;
-            document.getElementById('saveButton').textContent = 'Simpan';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification(
-            isEditMode ? 'Gagal memperbarui tugas' : 'Gagal menambahkan tugas',
-            'error'
-        );
-    });
-}
-
-function handleEdit(taskId) {
+            const saveButton = document.getElementById('saveButton');
+            saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan';
+        })
+        .catch(error => {
+            console.error('Error updating task:', error);
+            showNotification('Gagal memperbarui tugas', 'error');
+        });
+    } else {
+        // Create new task
+        const newTask = { subject, deadline, status };
+  
+        fetch('http://localhost:3000/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newTask)
+        })
+        .then(response => response.json())
+        .then(() => {
+            fetchTasks();
+            resetForm();
+            showNotification('Tugas berhasil ditambahkan');
+        })
+        .catch(error => {
+            console.error('Error saving task:', error);
+            showNotification('Gagal menambahkan tugas', 'error');
+        });
+    }
+  }
+  
+  function handleEdit(taskId) {
     isEditMode = true;
     editingId = taskId;
   
@@ -130,9 +145,8 @@ function handleEdit(taskId) {
     const saveButton = document.getElementById('saveButton');
     saveButton.innerHTML = '<i class="fas fa-check"></i> Update';
   }
-
-// Fungsi untuk menghapus
-function handleDelete(taskId) {
+  
+  function handleDelete(taskId) {
     const deleteModal = document.createElement('div');
     deleteModal.className = 'modal';
     deleteModal.innerHTML = `
@@ -146,13 +160,13 @@ function handleDelete(taskId) {
         </div>
     `;
     document.body.appendChild(deleteModal);
-}
-
-function confirmDelete(taskId, buttonElement) {
+  }
+  
+  function confirmDelete(taskId, buttonElement) {
     const modal = buttonElement.closest('.modal');
     
-    fetch(`/.netlify/functions/tasks/${taskId}`, {
-        method: 'DELETE'  // Gunakan DELETE dengan URL yang tepat
+    fetch(`http://localhost:3000/tasks/${taskId}`, {
+        method: 'DELETE'
     })
     .then(() => {
         fetchTasks();
@@ -164,36 +178,25 @@ function confirmDelete(taskId, buttonElement) {
         showNotification('Gagal menghapus tugas', 'error');
         modal.remove();
     });
-}
-function resetForm() {
+  }
+  
+  // Helper functions
+  function resetForm() {
     document.getElementById('subject').value = '';
     document.getElementById('deadline').value = '';
     document.getElementById('status').value = 'Belum Mulai';
-
+    
     // Reset edit mode
     isEditMode = false;
     editingId = null;
     const saveButton = document.getElementById('saveButton');
     saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan';
-}
-
-// Helper functions
-function resetForm() {
-  document.getElementById('subject').value = '';
-  document.getElementById('deadline').value = '';
-  document.getElementById('status').value = 'Belum Mulai';
+  }
   
-  // Reset edit mode
-  isEditMode = false;
-  editingId = null;
-  const saveButton = document.getElementById('saveButton');
-  saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan';
-}
-
-function formatDateForInput(dateString) {
-  const date = new Date(dateString);
-  return date.toISOString().split('T')[0];
-}
-
-// Initialize
-window.onload = fetchTasks;
+  function formatDateForInput(dateString) {
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+  }
+  
+  // Initialize
+  window.onload = fetchTasks;

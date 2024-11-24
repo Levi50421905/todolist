@@ -1,50 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ujian_Muhammad Alfarezzi F_3IA17_50421905</title>
-  <link rel="stylesheet" href="/UJIAN_3IA17_Muhammad-Alfarezzi-Fallevi-main/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="logoar2.png">
+    <title>Manajemen Tugas</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/UJIAN_3IA17_Muhammad-Alfarezzi-Fallevi-main/style.css">
 </head>
 <body>
+    <div class="container">
+        <div class="header">
+            <h1>Manajemen Tugas</h1>
+        </div>
 
-  <h2>Tugas</h2>
+        <div class="task-form">
+            <form id="taskForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="subject">Mata Pelajaran</label>
+                        <input type="text" id="subject" class="form-control" placeholder="Masukkan mata pelajaran">
+                    </div>
+                    <div class="form-group">
+                        <label for="deadline">Tenggat Waktu</label>
+                        <input type="date" id="deadline" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status" class="form-control">
+                            <option value="Belum Mulai">Belum Mulai</option>
+                            <option value="Sedang Dikerjai">Sedang Dikerjai</option>
+                            <option value="Selesai">Selesai</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" id="saveButton" class="btn" onclick="handleSave()">
+                    <i class="fas fa-save"></i> Simpan
+                </button>
+            </form>
+        </div>
 
-  <!-- Form untuk memasukkan data -->
-  <form id="taskForm">
-    <label for="subject">Mata Pelajaran:</label>
-    <input type="text" id="subject" required>
-
-    <label for="deadline">Tenggat Waktu:</label>
-    <input type="date" id="deadline" required>
-
-
-    <label for="status">Status:</label>
-    <select id="status" required>
-      <option value="Belum Mulai">Belum Mulai</option>
-      <option value="Sedang Dikerjai">Sedang Dikerjai</option>
-      <option value="Selesai">Selesai</option>
-    </select>
-
-    <button type="button" id="saveButton" onclick="handleSave()">Simpan</button>
-
-  </form>
-
-  <!-- Tabel untuk menampilkan data -->
-  <table>
-    <thead>
-      <tr>
-        <th>Mata Pelajaran</th>
-        <th>Tenggat Waktu</th>
-        <th>Status</th>
-        <th>Aksi</th>
-      </tr>
-    </thead>
-    <tbody id="taskList">
-    </tbody>
-  </table>
-
-  <script src="/UJIAN_3IA17_Muhammad-Alfarezzi-Fallevi-main/script.js"></script>
-
+        <div class="task-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mata Pelajaran</th>
+                        <th>Tenggat Waktu</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="taskList">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="/UJIAN_3IA17_Muhammad-Alfarezzi-Fallevi-main/script.js"></script>
 </body>
 </html>

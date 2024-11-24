@@ -43,38 +43,39 @@ let editingId = null;
 const API_URL = '/.netlify/functions/api';
 
 function fetchTasks() {
-  fetch(`${API_URL}/tasks`)
-      .then(response => response.json())
-      .then(tasks => {
-          const taskList = document.getElementById('taskList');
-          taskList.innerHTML = '';
-          tasks.forEach(task => {
-              const newRow = taskList.insertRow();
-              newRow.setAttribute('id', task._id);
-
-              newRow.innerHTML = `
-                  <td>${task.subject}</td>
-                  <td>${formatDate(task.deadline)}</td>
-                  <td><span class="${getStatusBadgeClass(task.status)}">${task.status}</span></td>
-                  <td>
-                      <div class="action-buttons">
-                          <button class="btn-icon btn-edit" onclick="handleEdit('${task._id}')">
-                              <i class="fas fa-edit"></i>
-                          </button>
-                          <button class="btn-icon btn-delete" onclick="handleDelete('${task._id}')">
-                              <i class="fas fa-trash"></i>
-                          </button>
-                      </div>
-                  </td>
-              `;
-          });
-      })
-      .catch(error => {
-          console.error('Error fetching tasks:', error);
-          showNotification('Gagal mengambil data tugas', 'error');
-      });
-}
-
+    fetch('/.netlify/functions/tasks')
+        .then(response => response.json())
+        .then(tasks => {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            tasks.forEach(task => {
+                const newRow = taskList.insertRow();
+                newRow.setAttribute('id', task._id);
+  
+                newRow.innerHTML = `
+                    <td>${task.subject}</td>
+                    <td>${formatDate(task.deadline)}</td>
+                    <td><span class="${getStatusBadgeClass(task.status)}">${task.status}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-edit" onclick="handleEdit('${task._id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon btn-delete" onclick="handleDelete('${task._id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching tasks:', error);
+            showNotification('Gagal mengambil data tugas', 'error');
+        });
+  }
+  
+// Fungsi untuk menyimpan/update data
 function handleSave() {
     const subject = document.getElementById('subject').value;
     const deadline = document.getElementById('deadline').value;
@@ -82,8 +83,8 @@ function handleSave() {
 
     const task = { subject, deadline, status };
     const url = isEditMode ? 
-        `${API_URL}/tasks/${editingId}` : 
-        `${API_URL}/tasks`;
+         `/.netlify/functions/tasks/${editingId}` : 
+        '/.netlify/functions/tasks';
     const method = isEditMode ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -114,54 +115,66 @@ function handleSave() {
 }
 
 function handleEdit(taskId) {
-  isEditMode = true;
-  editingId = taskId;
+    isEditMode = true;
+    editingId = taskId;
+  
+    const row = document.getElementById(taskId);
+    const subject = row.cells[0].innerHTML;
+    const deadline = row.cells[1].innerHTML;
+    const status = row.cells[2].querySelector('span').innerHTML;
+  
+    document.getElementById('subject').value = subject;
+    document.getElementById('deadline').value = formatDateForInput(deadline);
+    document.getElementById('status').value = status;
+  
+    const saveButton = document.getElementById('saveButton');
+    saveButton.innerHTML = '<i class="fas fa-check"></i> Update';
+  }
 
-  const row = document.getElementById(taskId);
-  const subject = row.cells[0].innerHTML;
-  const deadline = row.cells[1].innerHTML;
-  const status = row.cells[2].querySelector('span').innerHTML;
-
-  document.getElementById('subject').value = subject;
-  document.getElementById('deadline').value = formatDateForInput(deadline);
-  document.getElementById('status').value = status;
-
-  const saveButton = document.getElementById('saveButton');
-  saveButton.innerHTML = '<i class="fas fa-check"></i> Update';
-}
-
+// Fungsi untuk menghapus
 function handleDelete(taskId) {
-  const deleteModal = document.createElement('div');
-  deleteModal.className = 'modal';
-  deleteModal.innerHTML = `
-      <div class="modal-content">
-          <h2>Konfirmasi Hapus</h2>
-          <p>Apakah Anda yakin ingin menghapus tugas ini?</p>
-          <div class="modal-actions">
-              <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Batal</button>
-              <button class="btn btn-danger" onclick="confirmDelete('${taskId}', this)">Hapus</button>
-          </div>
-      </div>
-  `;
-  document.body.appendChild(deleteModal);
+    const deleteModal = document.createElement('div');
+    deleteModal.className = 'modal';
+    deleteModal.innerHTML = `
+        <div class="modal-content">
+            <h2>Konfirmasi Hapus</h2>
+            <p>Apakah Anda yakin ingin menghapus tugas ini?</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Batal</button>
+                <button class="btn btn-danger" onclick="confirmDelete('${taskId}', this)">Hapus</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(deleteModal);
 }
 
 function confirmDelete(taskId, buttonElement) {
-  const modal = buttonElement.closest('.modal');
-  
-  fetch(`http://localhost:3000/tasks/${taskId}`, {
-      method: 'DELETE'
-  })
-  .then(() => {
-      fetchTasks();
-      modal.remove();
-      showNotification('Tugas berhasil dihapus');
-  })
-  .catch(error => {
-      console.error('Error deleting task:', error);
-      showNotification('Gagal menghapus tugas', 'error');
-      modal.remove();
-  });
+    const modal = buttonElement.closest('.modal');
+    
+    fetch(`/.netlify/functions/tasks/${taskId}`, {
+        method: 'DELETE'  // Gunakan DELETE dengan URL yang tepat
+    })
+    .then(() => {
+        fetchTasks();
+        modal.remove();
+        showNotification('Tugas berhasil dihapus');
+    })
+    .catch(error => {
+        console.error('Error deleting task:', error);
+        showNotification('Gagal menghapus tugas', 'error');
+        modal.remove();
+    });
+}
+function resetForm() {
+    document.getElementById('subject').value = '';
+    document.getElementById('deadline').value = '';
+    document.getElementById('status').value = 'Belum Mulai';
+
+    // Reset edit mode
+    isEditMode = false;
+    editingId = null;
+    const saveButton = document.getElementById('saveButton');
+    saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan';
 }
 
 // Helper functions
